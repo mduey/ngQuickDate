@@ -239,18 +239,20 @@ describe "ngQuickDate", ->
         expect(Date.parse(element.scope().someDate)).toEqual(Date.parse('2/1/2014 2:00 PM'))
 
 
-    describe "Given a datepicker with an 'on-change' method to call", ->
+    describe "Given a datepicker with an 'on-change-callback' method to call", ->
       mySpy = undefined
       beforeEach(inject(($compile, $rootScope) ->
         scope = $rootScope
         scope.myVariable = 1
-        scope.myOtherVariable = null
-        scope.myMethod = (param) ->
+        scope.theNewValue = null
+        scope.theOldValue = null
+        scope.myMethod = (newVal, oldVal) ->
           scope.myVariable += 1
-          scope.myOtherVariable = param
+          scope.theNewValue = newVal
+          scope.theOldValue = oldVal
 
         scope.myDate = new Date(2013, 5, 10)
-        element = $compile("<datepicker ng-model='myDate' on-change='myMethod(\"hello!\")' />")(scope)
+        element = $compile("<datepicker ng-model='myDate' on-change-callback='myMethod' />")(scope)
         scope.$apply()
       ))
 
@@ -271,7 +273,8 @@ describe "ngQuickDate", ->
 
         it 'should call the method once', ->
           expect(scope.myVariable).toEqual(2)
-          expect(scope.myOtherVariable).toEqual('hello!')
+          expect(scope.theNewValue).toEqual(new Date('1/5/2013'))
+          expect(scope.theOldValue).toEqual(new Date(2013, 5, 10))
 
       describe 'When the date input is blurred but not changed', ->
         beforeEach ->

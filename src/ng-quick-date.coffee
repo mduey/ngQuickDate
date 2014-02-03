@@ -43,12 +43,13 @@ app.provider "ngQuickDateDefaults", ->
         @options[keyOrHash] = value
   }
 
-app.directive "datepicker", ['ngQuickDateDefaults', '$filter', '$sce', (ngQuickDateDefaults, $filter, $sce) ->
+app.directive "datepicker", ['ngQuickDateDefaults', '$filter', '$timeout', '$sce', (ngQuickDateDefaults, $filter, $timeout, $sce) ->
   restrict: "E"
   require: "ngModel"
   scope:
     ngModel: "="
     onChange: "&"
+    onChangeCallback: '='
 
   replace: true
   link: (scope, element, attrs, ngModel) ->
@@ -200,11 +201,16 @@ app.directive "datepicker", ['ngQuickDateDefaults', '$filter', '$sce', (ngQuickD
 
     scope.setDate = (date, closeCalendar=true) ->
       changed = (!scope.ngModel && date) || (scope.ngModel && !date) || (date.getTime() != stringToDate(scope.ngModel).getTime())
+      oldValue = if scope.ngModel then new Date(scope.ngModel.getTime()) else nil
       scope.ngModel = date
       if closeCalendar
         scope.toggleCalendar(false)
-      if changed && scope.onChange
-        scope.onChange()
+      if changed 
+        if scope.onChange
+          console.warn("The on-change option is deprecated and will soon be removed due to a bug. Please use on-change-callback instead");
+          scope.onChange();
+        if scope.onChangeCallback
+          scope.onChangeCallback(scope.ngModel, oldValue)
 
     scope.setDateFromInput = (closeCalendar=false) ->
       try

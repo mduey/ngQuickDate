@@ -48,13 +48,14 @@
   });
 
   app.directive("datepicker", [
-    'ngQuickDateDefaults', '$filter', '$sce', function(ngQuickDateDefaults, $filter, $sce) {
+    'ngQuickDateDefaults', '$filter', '$timeout', '$sce', function(ngQuickDateDefaults, $filter, $timeout, $sce) {
       return {
         restrict: "E",
         require: "ngModel",
         scope: {
           ngModel: "=",
-          onChange: "&"
+          onChange: "&",
+          onChangeCallback: '='
         },
         replace: true,
         link: function(scope, element, attrs, ngModel) {
@@ -210,17 +211,24 @@
             }
           };
           scope.setDate = function(date, closeCalendar) {
-            var changed;
+            var changed, oldValue;
             if (closeCalendar == null) {
               closeCalendar = true;
             }
             changed = (!scope.ngModel && date) || (scope.ngModel && !date) || (date.getTime() !== stringToDate(scope.ngModel).getTime());
+            oldValue = scope.ngModel ? new Date(scope.ngModel.getTime()) : nil;
             scope.ngModel = date;
             if (closeCalendar) {
               scope.toggleCalendar(false);
             }
-            if (changed && scope.onChange) {
-              return scope.onChange();
+            if (changed) {
+              if (scope.onChange) {
+                console.warn("The on-change option is deprecated and will soon be removed due to a bug. Please use on-change-callback instead");
+                scope.onChange();
+              }
+              if (scope.onChangeCallback) {
+                return scope.onChangeCallback(scope.ngModel, oldValue);
+              }
             }
           };
           scope.setDateFromInput = function(closeCalendar) {
